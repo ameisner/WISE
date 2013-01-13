@@ -3,10 +3,11 @@
 ;  wise_psf_cutout
 ;   
 ; PURPOSE:
-;  generate a WISE W3 PSF cutout for specified (x, y) image coordinates   
+;  generate a WISE PSF cutout for specified (x, y) L1b coordinates   
 ;
 ; CALLING SEQUENCE:
-;  psf = wise_psf_cutout(x, y, BRIGHT=, psf_coeff=)   
+;  psf = wise_psf_cutout(x, y, BRIGHT=, psf_coeff=, allsky=, w4=,
+;                        msk=, flux=)   
 ;
 ; INPUTS:
 ;  x      - x coordinate for PSF centroid
@@ -17,13 +18,33 @@
 ;              bright star
 ;  psf_coeff - pass in pre-read PSF image, rather than re-reading the
 ;              file containing the PSF for every PSF generated
+;  allsky    - set for allsky release (default preliminary release)
+;  w4        - set for W4 (default W3)
+;  msk       - L1b mask image, don't worry about this keyword as it's rarely
+;              useful
+;  flux      - source flux in DN, if particular PSF scaling is desired
+;  
 ;
 ; OUTPUTS:
-;   cutout - PSF cutout appropriate to supplied (x, y) image coordinates
+;   cutout - PSF cutout appropriate to supplied (x, y) L1b
+;            coordinates, with L1b pixel scale
 ;
 ; EXAMPLES:
-;   faint_cutout  = wise_psf_cutout(x, y)
-;   bright_cutout = wise_psf_cutout(x, y, /BRIGHT)
+;   faint_cutout  = wise_psf_cutout(x, y, /allsky)
+;   bright_cutout = wise_psf_cutout(x, y, /BRIGHT, /allsky)
+;
+; DEPENDENCIES:
+;   psf_par_struc.pro
+;   read_psf_coeff.pro
+;   taper_cutout.pro
+;   taper_weight.pro
+;   wise_translate_ghost.pro
+;
+; COMMENTS:
+;   This routine does not perform fractional pixel sinc shifting.
+;   This routine tapers the PSF model edges gradually and
+;   symmetrically to zero by default, and there is currently no keyword
+;   to disable this feature.
 ;
 ; REVISION HISTORY:
 ;   2012-Feb-16 - Written by Aaron Meisner
