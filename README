@@ -1,0 +1,36 @@
+Retrieving WISE PSF Model
+=========================
+Check out a copy of the WISE/pro and WISE/etc contents. The FITS files 
+containing the PSF models are in WISE/etc. Set the WISE_DATA environment 
+variable to the directory in which you place these FITS files. To retrieve a 
+PSF cutout, use wise_psf_cutout.pro.
+
+Important Keywords
+==================
+For historical reasons, all IDL routines apply to the Preliminary Release
+by default. As a result, it is necessary to set the allsky keyword to 1 when
+using these IDL routines. The IDL routines default to W3; set the w4 keyword to
+1 when W4 is desired.
+
+Notes on Fluxes and Magnitudes
+==============================
+The flux of a point source with catalog magnitude w?mpro (in L1b DN) is given 
+by:
+
+flux = 10^((magzp-w?mpro)/2.5)
+
+Where magzp is given by the parameter magzp in psf_par_struc.pro, and flux
+is measured in an aperture of radius 0.46 (0.92) arcmin in W3 (W4)
+
+Latent Model Details
+====================
+The parameter latim (latim2) in psf_par_struc.pro gives the file name 
+containing the first (second) latent model. These models are scaled to 
+w?mpro = 0 for both W3 and W4. The first latent is nonlinear in parent
+source flux, with amplitude given by:
+
+amplitude(w?mpro) = corr*amplitude(w?mpro = 0)*10^(-w?mpro/2.5)
+
+Where corr is a scalar correction factor that can be retrieved using 
+latent_nonlin_corr.pro. Such a nonlinearity correction coefficient
+was found to be unnecessary for the second latent model in both bands.
