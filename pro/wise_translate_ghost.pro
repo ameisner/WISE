@@ -36,10 +36,10 @@ function wise_translate_ghost, x, y, intshift=intshift, allsky=allsky, w4=w4
   if n_elements(ghost_cutout) EQ 0 then begin
       ghost_cutout = readfits(par.fghost)
       scalefac = $ 
-          readfits('/n/panlfs/ameisner/psf/results/w3_ghost-scalefac.fits')
-      xshift = readfits('/n/panlfs/ameisner/psf/results/w3_ghost-shift.fits')
+          readfits('$WISE_DATA/w3_ghost-scalefac.fits')
+      xshift = readfits('$WISE_DATA/w3_ghost-shift.fits')
       yshift = $ 
-          readfits('/n/panlfs/ameisner/psf/results/w3_ghost-shift.fits', ex=1)
+          readfits('$WISE_DATA/w3_ghost-shift.fits', ex=1)
   endif
 
 ; ----- bound coordinates within region over which ghost shift has been fit
