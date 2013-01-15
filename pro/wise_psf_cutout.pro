@@ -45,6 +45,7 @@
 ;   This routine tapers the PSF model edges gradually and
 ;   symmetrically to zero by default, and there is currently no keyword
 ;   to disable this feature.
+;   (x, y) = (0, 0) corresponds to the center of the lower left corner pixel  
 ;
 ; REVISION HISTORY:
 ;   2012-Feb-16 - Written by Aaron Meisner
@@ -54,37 +55,35 @@ function wise_psf_cutout, x, y, BRIGHT=BRIGHT, allsky=allsky, w4=w4, $
 
   par = psf_par_struc(w4=w4, allsky=allsky, /everything)
 ; ----- minimum allowed separation b/w PSF star centroid, image edge
-  NPAD = keyword_set(w4) ? -0.5 : 114.5
-  coord_min_faint = par.psfpix/2-par.pfaint/2 
-  coord_max_faint = par.psfpix/2+par.pfaint/2
+  NPAD = -0.5
+  coord_min = keyword_set(BRIGHT) ? 0 : (par.psfpix/2-par.pfaint/2)
+  coord_max = keyword_set(BRIGHT) ? (par.psfpix-1) : $ 
+                                    (par.psfpix/2+par.pfaint/2)
 
   if ~keyword_set(psf_coeff) then begin 
     psf_coeff = read_psf_coeff(allsky=allsky, w4=w4)
   endif
 
+;----- don't extrapolate PSF beyond region over which it was fit
+  xpsf   = (x > NPAD) < (par.impix-1-NPAD)
+  ypsf   = (y > NPAD) < (par.impix-1-NPAD)
+
+  dx     = xpsf - par.crpix
+  dy     = ypsf - par.crpix
+  cutout = psf_coeff[coord_min:coord_max, coord_min:coord_max, 0] + $ 
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 1]*dx + $
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 2]*dy + $
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 3]*dx*dy + $
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 4]*dx^2 + $ 
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 5]*dy^2 + $ 
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 6]*(dx^2)*dy + $
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 7]*(dy^2)*dx + $
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 8]*(dx^3) + $ 
+           psf_coeff[coord_min:coord_max, coord_min:coord_max, 9]*(dy^3)
+
   if ~keyword_set(BRIGHT) then begin
-; ----- faint star case
-    cutout = psf_coeff[coord_min_faint:coord_max_faint, $ 
-                       coord_min_faint:coord_max_faint, 0]
     cutout = taper_cutout(cutout, feat='wings', allsky=allsky, w4=w4)
   endif else begin
-;----- bright star case
-;----- don't extrapolate PSF beyond region over which it was fit
-    xpsf   = (x > NPAD) < (par.impix-1-NPAD)
-    ypsf   = (y > NPAD) < (par.impix-1-NPAD)
-
-    dx     = xpsf - par.crpix
-    dy     = ypsf - par.crpix
-    cutout = psf_coeff[*, *, 0] + $ 
-             psf_coeff[*, *, 1]*dx + $
-             psf_coeff[*, *, 2]*dy + $
-             psf_coeff[*, *, 3]*dx*dy + $
-             psf_coeff[*, *, 4]*dx^2 + $ 
-             psf_coeff[*, *, 5]*dy^2 + $ 
-             psf_coeff[*, *, 6]*(dx^2)*dy + $
-             psf_coeff[*, *, 7]*(dy^2)*dx + $
-             psf_coeff[*, *, 8]*(dx^3) + $ 
-             psf_coeff[*, *, 9]*(dy^3)
 ; ----- substitute in new ghost translation model
     if ~keyword_set(w4) then begin
       ghost_cutout = wise_translate_ghost(x, y, intshift=ishift, $ 
