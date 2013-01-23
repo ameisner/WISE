@@ -31,10 +31,11 @@
 ; REVISION HISTORY:
 ;   2011-Nov-25 - Aaron Meisner
 ;----------------------------------------------------------------------
-function taper_cutout, cutout, feat=feat, bright=bright, allsky=allsky, w4=w4
+function taper_cutout, cutout, feat=feat, bright=bright, allsky=allsky, $ 
+                       w4=w4, band=band
 
   w4 = keyword_set(w4)
-  par = psf_par_struc(w4=w4, allsky=allsky, /everything)
+  par = psf_par_struc(w4=w4, allsky=allsky, /everything, band=band)
 ; feat should either be 'wings' (here meant to include
 ; wings+core), 'latent', 'latent2', or 'ghost'
   if ~keyword_set(feat) then feat = 'wings'
@@ -67,8 +68,10 @@ function taper_cutout, cutout, feat=feat, bright=bright, allsky=allsky, w4=w4
       'latent'  : begin
 ; ----- eventually absorb these into psf_par_struc.pro and generalize
 ;       to w4
-                      r0 = w4 ? 95 : 162 ; L1b pix
-                      r1 = w4 ? 85 : 147
+                      r0s = [50, -1, 162, 95] ; L1b pix
+                      r1s = [40, -1, 147, 85]
+                      r0 = r0s[band-1]
+                      r1 = r1s[band-1]
                       weight = taper_weight(par.szlat, par.szlat, r0, r1)
                       tap = weight*cutout
                   end 

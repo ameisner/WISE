@@ -58,10 +58,10 @@ function sshift_bitmask, im, xyshift, wt
 
 end
 
-function determine_background, im, x, y, w4=w4, feat=feat
+function determine_background, im, x, y, w4=w4, feat=feat, band=band
 
   if ~keyword_set(feat) then feat='wings'
-  par = psf_par_struc(w4=w4, feat=feat)
+  par = psf_par_struc(w4=w4, feat=feat, band=band)
   bg = djs_photsky(x, y, par.skyrad, im)
   return, bg
 
@@ -87,7 +87,7 @@ function check_mask, msk, ix, iy, w4=w4, feat=feat
 end
 
 function prepare_single_cutout, im, msk, unc, h, x, y, bg=bg, feat=feat, $ 
-                                subtract=subtract, wt=wt, w4=w4
+                                subtract=subtract, wt=wt, w4=w4, band=band
 
 ; given file name and compact source coordinates, retrieve relevant cutout
 ; and corresponding coverage bitmask
@@ -95,7 +95,7 @@ function prepare_single_cutout, im, msk, unc, h, x, y, bg=bg, feat=feat, $
   if ~keyword_set(feat) then feat='wings'
  ; full = (feat EQ 'latent') ; demand full cutout ?
   full = 0
-  par = psf_par_struc(w4=w4, feat=feat)
+  par = psf_par_struc(w4=w4, feat=feat, band=band)
 
   mgood = check_mask(msk, round(x), round(y)-par.yoffs, w4=w4, feat=feat)
   if ~mgood then return, -1
@@ -108,7 +108,7 @@ function prepare_single_cutout, im, msk, unc, h, x, y, bg=bg, feat=feat, $
   xpix = par.szx
   ypix = par.szy
 
-  bg = determine_background(intim, x, y, w4=w4, feat=feat)
+  bg = determine_background(intim, x, y, w4=w4, feat=feat, band=band)
   cutout = wise_l1b_cutout(intim, round(x), round(y)-par.yoffs, xpix, ypix, $ 
                            wt=wt, w4=w4, full=full)
   if max(wt) EQ 0 then return, -1
@@ -140,7 +140,7 @@ function package_cutout, ra, dec, mag, x, y, fname, cutout, wt, unc, bg
 end
 
 function prepare_relevant_cutouts, ra, dec, mag, nmax=nmax, feat=feat, $ 
-                                   subtract=subtract, w4=w4
+                                   subtract=subtract, w4=w4, band=band
 
 ; given ra,dec determine images from which cutouts can be drawn
 ; and call prepare_single_cutout to retrieve
@@ -148,7 +148,7 @@ function prepare_relevant_cutouts, ra, dec, mag, nmax=nmax, feat=feat, $
   if ~keyword_set(feat) then feat='wings'
   if ~keyword_set(nmax) then nmax = 10000L
 
-  par = psf_par_struc(w4=w4, feat=feat)
+  par = psf_par_struc(w4=w4, feat=feat, band=band)
   xpix = par.szx
   ypix = par.szy
 
@@ -159,8 +159,8 @@ function prepare_relevant_cutouts, ra, dec, mag, nmax=nmax, feat=feat, $
 
   euler, ra, dec, lgal, bgal, 1
   lb = [lgal, bgal]
-  indstr = wise_index_metadata(lb, angle=maxsep, /allsky, w4=w4)
-  nfile = n_elements(indstr)
+  indstr = wise_index_metadata(lb, angle=maxsep, /allsky, w4=w4, band=band)
+  nfile = (size(indstr,/TYPE) NE 8) ? 0 : n_elements(indstr)
   print, 'number of candidate L1b exposures: ', nfile
   if nfile EQ 0 then return, -1
   
@@ -174,16 +174,18 @@ function prepare_relevant_cutouts, ra, dec, mag, nmax=nmax, feat=feat, $
 ; ----- is the cutout "included" in this image or not?
       incl = $ 
           wise_l1b_cutout(_, round(x), round(y)-par.yoffs, xpix, ypix, $ 
-                          wt=wt, w4=w4, /bool)
+                          wt=wt, w4=w4, /bool) ; band kw not needed
       if ~incl then continue
       if feat EQ 'latent' then begin
-          prev = previous_exposure(indstr[i].mjd, /allsky, w4=w4, /forward)
+          prev = previous_exposure(indstr[i].mjd, /allsky, w4=w4, /forward, $ 
+                                   band=band)
           if (size(prev, /TYPE) EQ 2) then continue
           h = headfits(prev[0].fname, /silent)
           thisfile = prev[0].fname
       endif
       if (feat EQ 'latent2') then begin
-          prev = previous_exposure(indstr[i].mjd,/allsky,w4=w4,/forward,N=2)
+          prev = previous_exposure(indstr[i].mjd, /allsky, w4=w4, /forward, $ 
+                  N=2, band=band)
           if (size(prev, /TYPE) EQ 2) then continue
           w2 = where(prev.n EQ 2)
           if (w2 EQ -1) then continue
@@ -199,8 +201,9 @@ function prepare_relevant_cutouts, ra, dec, mag, nmax=nmax, feat=feat, $
       if n_elements(unc) EQ 1 then continue
       cutout = $
           prepare_single_cutout(im, msk, unc, h, x, y, subtract=subtract, $ 
-                                wt=wt, w4=w4, bg=bg, feat=feat)
+                                wt=wt, w4=w4, bg=bg, feat=feat, band=band)
       if max(wt) EQ 0 then continue
+      if (bg EQ 0) then continue
       cutstr = package_cutout(ra, dec, mag, x, y, thisfile, cutout, $ 
                               wt, unc, bg)
       if n_elements(cubestr) EQ 0 then cubestr = cutstr else $
@@ -212,10 +215,11 @@ function prepare_relevant_cutouts, ra, dec, mag, nmax=nmax, feat=feat, $
 
 end
 
-pro get_star_sample, ra, dec, mag, w4=w4, feat=feat
+pro get_star_sample, ra, dec, mag, w4=w4, feat=feat, band=band
 
+  band = keyword_set(band) ? band : (keyword_set(w4) ? 4 : 3)
   if ~keyword_set(feat) then feat = 'wings'
-  if ~keyword_set(w4) then begin
+  if (band EQ 3) then begin
 ; ----- read in bright star custom fitted mags, coords, and associated
 ;       flags
       if (feat EQ 'core') OR (feat EQ 'latent') then begin
@@ -245,7 +249,8 @@ pro get_star_sample, ra, dec, mag, w4=w4, feat=feat
       ra = catra[wpsf]
       dec = catdec[wpsf]
       mag = catmag[wpsf]
-  endif else begin
+  endif
+  if (band EQ 4) then begin
       cat = mrdfits('$WISE_DATA/w4_catalog-allsky.fits', 1)
       euler, cat.ra, cat.dec, lgal, bgal, 1
 ; ----- eventually absorb these into psf_par_struc
@@ -266,15 +271,50 @@ pro get_star_sample, ra, dec, mag, w4=w4, feat=feat
       ra = cat[wpsf].ra
       dec = cat[wpsf].dec
       mag = cat[wpsf].w4mpro
-  endelse
+  endif
+  if (band EQ 1) then begin
+      par = psf_par_struc(/everything, band=band)
+      cat = mrdfits(par.catfile, 1)
+      euler, cat.ra, cat.dec, lgal, bgal, 1
+      if (feat EQ 'core') then begin
+          mag_upper = 8.0
+          mag_lower = 7.9
+          wpsf = where((cat.w1mpro GE mag_lower) AND $ 
+                       (cat.w1mpro LE mag_upper) AND $ 
+                       (abs(bgal) GT 35))
+          ra = cat[wpsf].ra
+          dec = cat[wpsf].dec
+          mag = cat[wpsf].w1mpro
+      endif
+     if (feat EQ 'wings') then begin
+          mag_upper = 3.30
+          mag_lower = 2.15
+          wpsf = where((cat.w1mpro GE mag_lower) AND $ 
+                       (cat.w1mpro LE mag_upper) AND $ 
+                       (abs(bgal) GT 40))
+          ra = cat[wpsf].ra
+          dec = cat[wpsf].dec
+          mag = cat[wpsf].w1mpro
+     endif
+     if (feat EQ 'latent') then begin
+          mag_upper = 3.30
+          mag_lower = 1.9
+          wpsf = where((cat.w1mpro GE mag_lower) AND $ 
+                       (cat.w1mpro LE mag_upper) AND $ 
+                       (abs(bgal) GT 40))
+          ra = cat[wpsf].ra
+          dec = cat[wpsf].dec
+          mag = cat[wpsf].w1mpro
+     endif
+  endif
 
 end
 
 function process_many_stars, indstart, nproc, w4=w4, feat=feat, $ 
-                             subtract=subtract, nmax=nmax
+                             subtract=subtract, nmax=nmax, band=band
 
   if ~keyword_set(feat) then feat='wings'
-  get_star_sample, ra, dec, mag, w4=w4, feat=feat
+  get_star_sample, ra, dec, mag, w4=w4, feat=feat, band=band
 
   npsf = n_elements(ra)
   indend = (long(indstart)+nproc-1) < (npsf-1)
@@ -283,7 +323,7 @@ function process_many_stars, indstart, nproc, w4=w4, feat=feat, $
       print, 'processing source with i = ', i
       t0 = systime(1)
       cubestr = prepare_relevant_cutouts(ra[i], dec[i], mag[i], $ 
-                     nmax=nmax, feat=feat, subtract=subtract, w4=w4)
+                     nmax=nmax, feat=feat, subtract=subtract, w4=w4, band=band)
       dt = systime(1)-t0
       print, 'processing source took: ', dt, ' seconds total'
 ; ----- handle case with no cutouts found corresponding to star
@@ -297,13 +337,13 @@ function process_many_stars, indstart, nproc, w4=w4, feat=feat, $
 end
 
 pro write_many_stars, indstart, nproc, outpath=outpath, w4=w4, feat=feat, $ 
-                      subtract=subtract, nmax=nmax
+                      subtract=subtract, nmax=nmax, band=band
 
   if ~keyword_set(feat) then feat='wings'
   if ~keyword_set(outpath) then outpath = '/n/panlfs/ameisner/psf'
 
   outstr = process_many_stars(indstart, nproc, w4=w4, feat=feat, $ 
-                              subtract=subtract, nmax=nmax)
+                              subtract=subtract, nmax=nmax, band=band)
 
   outname = 'psfcube_'+string(indstart,format='(I04)')+'.fits'
   outname = concat_dir(outpath, outname)

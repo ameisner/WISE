@@ -54,7 +54,7 @@ pro wise_make_mosaic, lb, nimage, outname, cleanpath=cleanpath, skip=skip, $
 
 ; -------- read the files
 ;     imcube = wise_read_imcube(lb, nimage=nimage, cleanpath=cleanpath)
-     wise_healpix_index, indh, flux, nside=2048, lb=lb, nimage=nimage, cleanpath=cleanpath, allsky=allsky, warp=warpp
+     wise_healpix_index, indh, flux, nside=2048, lb=lb, nimage=nimage, cleanpath=cleanpath, allsky=allsky, warp=warp
 
 ; -------- compute variance of pairwise image differences
 ;     pair = wise_pairwise_compare(lb, imcube=imcube, cleanpath=cleanpath)

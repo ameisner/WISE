@@ -36,7 +36,8 @@
 ; REVISION HISTORY:
 ;   2011-Oct-18 - Aaron Meisner
 ;----------------------------------------------------------------------
-function previous_exposure, mjd, allsky=allsky, w4=w4, forward=forward, N=N
+function previous_exposure, mjd, allsky=allsky, w4=w4, forward=forward, N=N, $ 
+                            band=band
 
 ; ----- N=0 is kind of meaningless here so don't do anything in that case
   if (size(N, /TYPE) NE 0) && ((abs(N) GT 5) OR (N EQ 0)) then begin
@@ -54,7 +55,7 @@ function previous_exposure, mjd, allsky=allsky, w4=w4, forward=forward, N=N
   endif
   dt = 11.1 ; length of one WISE exposure cycle, seconds
 
-  par = psf_par_struc(allsky=allsky, w4=w4)
+  par = psf_par_struc(allsky=allsky, w4=w4, band=band)
 ; ----- assume index files sorted by MJD !!!
   indexfile = par.indexfile
 

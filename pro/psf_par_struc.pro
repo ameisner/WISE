@@ -15,6 +15,9 @@
 ;   everything - set to retrieve all possible parameters for band/release
 ;                of interest
 ;   allsky - set to retrieve all-sky release parameters
+;   band - WISE W? band, should be integer 1-4 inclusive, takes
+;          precedence over w4 keyword
+;
 ;
 ; OUTPUTS:
 ;   par  - structure containing PSF model parameters
@@ -22,11 +25,16 @@
 ; EXAMPLES:
 ;   
 ; COMMENTS:
-;
+;   2013-Jan-20 - added band keyword to generalize to all bands
+;                 W1-W4. Ideally, I would replace all w4 keyword usage
+;                 in calls to psf_par_struc.pro throughout project
+;                 to use band=4, but for convenience I'm leaving
+;                 w4 keyword for backwards compatibility.
 ; REVISION HISTORY:
 ;   2011-Oct-14 - Aaron Meisner
 ;----------------------------------------------------------------------
-function psf_par_struc, w4=w4, feat=feat, everything=everything, allsky=allsky
+function psf_par_struc, w4=w4, feat=feat, everything=everything, $ 
+                        allsky=allsky, band=band
 
   forward_function psf_par_struc
 
@@ -37,7 +45,13 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, allsky=allsky
       return, psf_par_struc(w4=w4, everything=everything, allsky=allsky)
   endif
 
-  w4 = keyword_set(w4)
+  if (n_elements(band) EQ 1) && (band NE 1) AND (band NE 2) AND $ 
+      (band NE 3) AND (band NE 4) then return, -1
+
+; ----- if band keyword set, it will trump the w4 keyword
+  band = keyword_set(band) ? band : (keyword_set(w4) ? 4 : 3)
+
+  w4 = (band EQ 4)
 ; ----- sidelength of L1b image in pixels
   impix = w4 ? 508 : 1016
 
@@ -54,28 +68,39 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, allsky=allsky
   magzp = w4 ? 12.90 : (keyword_set(allsky) ? 17.645 : 17.6)
 
 ; ----- file containing L1b exposure metadata table
-  indexfile = w4 ? '$WISE_DATA/index-allsky-w4.fits' : $ 
-                (keyword_set(allsky) ? '$WISE_DATA/index-allsky-L1b.fits' : $ 
-                                       '$WISE_DATA/index-metadata-L1b.fits')
+  indexfiles = '$WISE_DATA/' + ['index-allsky-w1.fits', $ 
+                                'index-allsky-w2.fits', $ 
+          keyword_set(allsky) ? 'index-allsky-L1b.fits' : $ 
+                                'index-metadata-L1b.fits', $ 
+                                'index-allsky-w4.fits']
+  indexfile = indexfiles[band-1]
+
 ; ----- file containing compact source catalog
-  catfile = w4 ?  $ 
-               '$WISE_DATA/w4_catalog-allsky.fits' : $ 
-            (keyword_set(allsky) ? $ 
-               '$WISE_DATA/w3_catalog-allsky.fits' : $  
-               '$WISE_DATA/w3_catalog.fits' )
+  catfiles = '$WISE_DATA/' + ['w1_catalog.fits', $ 
+                              'w2_catalog.fits', $ 
+        keyword_set(allsky) ? 'w3_catalog-allsky.fits' : $ 
+                              'w3_catalog.fits', $ 
+                              'w4_catalog-allsky.fits']
+  catfile = catfiles[band-1]
 
 ; ----- file containing latent image
-  latim = w4 ? '$WISE_DATA/latent-taper-w4.fits' : $ 
-        (keyword_set(allsky) ? '$WISE_DATA/latent-nonlinear-allsky.v1.fits' : $
-                               '$WISE_DATA/latent-nonlinear.fits')
+  latims = '$WISE_DATA/' + ['latent-w1.fits', $ 
+                            '', $ 
+      keyword_set(allsky) ? 'latent-nonlinear-allsky.v1.fits' : $ 
+                            'latent-nonlinear.fits', $
+                            'latent-taper-w4.fits']
+  latim = latims[band-1]
 
 ; ----- file containing image of second latent
   latim2 = w4 ? '$WISE_DATA/latent2-w4.fits' : '$WISE_DATA/latent2-w3.fits'
 
 ; ----- file containing PSF polynomial coefficients
-  fpsf = w4 ? '$WISE_DATA/psf_coeff-taper-w4.fits' : $ 
-           (keyword_set(allsky) ? '$WISE_DATA/psf_coeff-big.fits' : $
-                                  '$WISE_DATA/psf_coeff.fits')
+  fpsfs = '$WISE_DATA/' + ['psf_coeff-w1.fits', $ 
+                           '', $ 
+     keyword_set(allsky) ? 'psf_coeff-big.fits' : $ 
+                           'psf_coeff.fits', $
+                           'psf_coeff-taper-w4.fits']
+  fpsf = fpsfs[band-1]
 
 ; ----- file containing ghost image cutout, not yet applicable to W4
   fghost = w4 ? '' : '$WISE_DATA/ghost-w3-big.fits'
@@ -88,7 +113,8 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, allsky=allsky
   szcore = w4 ? 27 : 35 ; W3 value ?
 
 ; ----- latent model sidelength
-  szlat = w4 ? 191 : 325
+  szlats = [101, -1, 325, 191] ; W2 value??
+  szlat = szlats[band-1]
 
 ; ----- 2nd latent model sidelength
   szlat2 = w4 ? 189 : 271
@@ -119,7 +145,8 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, allsky=allsky
 
 ; ----- size of full PSF model including core+wings+ghost, could be calculated
 ;       from szwings, ygpix, ygoffs but this will be convenient
-  psfpix = w4 ? 285 : 499
+  psfpixs = [325,-1,499, 285]
+  psfpix = psfpixs[band-1]
 
 ; ----- size of PSF cutout to be subtracted from faint sources
   pfaint = 115 ; applies to both W3, W4
@@ -139,7 +166,8 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, allsky=allsky
 
 ; ----- radius inside of which PSF wings are replaced with values from
 ;       PSF core fit
-  radcore = w4 ? 6 : 13 ; W3 value ?
+  radcores = [6, -1, 13, 6]
+  radcore = radcores[band-1]
 
 ; ----- sky annulus parameters for PSF wings
   skyrad = w4 ? szwings/2+23+[0,5] : szwings/2+[0, 5]

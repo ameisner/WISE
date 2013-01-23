@@ -64,10 +64,10 @@ end
 ; fluctuations relative to their default scaling
 function sfd_match, tnum, wisetile_path=wisetile_path, $ 
                      i100tile_path=i100tile_path, enhancement=enhancement, $ 
-                     omask=omask, h=h
+                     omask=omask, h=h, mask_dilate=mask_dilate
 
   if ~keyword_set(wisetile_path) then $ 
-      wisetile_path = '/n/panlfs/ameisner/tile-allsky-flat'
+      wisetile_path = '/n/wise/ameisner/tile-allsky-v1'
   if ~keyword_set(i100tile_path) then $ 
       i100tile_path = '/n/panlfs/ameisner/tile-sfd100'
   if ~keyword_set(enhancement) then enhancement=1.
@@ -96,13 +96,18 @@ function sfd_match, tnum, wisetile_path=wisetile_path, $
   satkern = shift(dist(spix), spix/2, spix/2) LT (spix/2+0.5)
   gpix = 11
   ghostkern = shift(dist(gpix), gpix/2, gpix/2) LT (gpix/2+0.5)
+  dpix = 3 ; diff spike mask dilation kernel sidelength
+  diffkern = shift(dist(dpix), dpix/2, dpix/2) LT (dpix/2+0.5)
   mask_dilate = bytarr(size(wise, /DIM))
   mask_dilate OR= dilate((omask AND 8) NE 0, latentkern) ; latent = 2^3
   mask_dilate OR= dilate(omask AND 1, satkern) ; sat = 2^0
   mask_dilate OR= dilate((omask AND 2) NE 0, ghostkern) ; ghost = 2^1
+  mask_dilate OR= dilate((omask AND 8192) NE 0, diffkern) ; diff spike = 2^13
+  ;;mask_dilate OR= (omask AND 8192) NE 0
   intx = djs_maskinterp(wise, mask_dilate, iaxis=0)
   inty = djs_maskinterp(wise, mask_dilate, iaxis=1)
   wise = (intx+inty)/2
+  wise_interp = wise ; save this
 
 ;----- rebin to avoid doing unnecessary work during convolution
   wise = rebin(wise, PIXSMALL, PIXSMALL)
@@ -118,7 +123,7 @@ function sfd_match, tnum, wisetile_path=wisetile_path, $
   offset = i100-smth
   offset = rebin(offset, 3000, 3000)
   wisewt = readfits(wisefile, ex=2, /silent)
-  wise_recalib = (wiseclean+ offset)*(wisewt NE 0) ; this really preferable???
+  wise_recalib = (wise_interp+ offset)*(wisewt NE 0) ; this really preferable??
 
   return, wise_recalib
 

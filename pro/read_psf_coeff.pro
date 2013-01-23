@@ -23,9 +23,9 @@
 ; REVISION HISTORY:
 ;   2012-Sep-22 - Written by Aaron Meisner
 ;----------------------------------------------------------------------
-function read_psf_coeff, allsky=allsky, w4=w4
+function read_psf_coeff, allsky=allsky, w4=w4, band=band
 
-  par = psf_par_struc(allsky=allsky, w4=w4, /everything)
+  par = psf_par_struc(allsky=allsky, w4=w4, /everything, band=band)
   coeff_file = par.fpsf
 
   COMMON PSFIMAGE, psf_coeff, coeff_file_sav
@@ -35,7 +35,7 @@ function read_psf_coeff, allsky=allsky, w4=w4
       for i=0, ncoeff-1 do $
           psf_coeff[*,*,i] = $ 
               taper_cutout(psf_coeff[*,*,i], feat='wings', /bright, $ 
-                           allsky=allsky, w4=w4)
+                           allsky=allsky, w4=w4, band=band)
       coeff_file_sav = coeff_file
   endif
 

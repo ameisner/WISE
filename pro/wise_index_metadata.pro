@@ -14,7 +14,8 @@
 ; OPTIONAL INPUTS:
 ;   nimage  - return data for nimage images nearest to (l,b) 
 ;   NOSORT  - keyword indicating sorted index file is not desired
-;
+;   band - WISE W? band, should be integer 1-4 inclusive, takes
+;          precedence over w4 keyword
 ; OUTPUTS:
 ;   indstr  - structure with metadata
 ;
@@ -22,17 +23,19 @@
 ;   See wise_write_clean1b.pro
 ;
 ; COMMENTS:
-;   
+;   see psf_par_struc.pro header for comments on relationship between
+;   band keyword and w4 keyword
+;
 ; REVISION HISTORY:
 ;   2012-Feb-22 - Written by Douglas Finkbeiner, CfA
 ;   2012-Mar-08 - added angle keyword - DPF
 ;
 ;----------------------------------------------------------------------
 function wise_index_metadata, lb, nimage=nimage, NOSORT=NOSORT, angle=angle, $ 
-                              allsky=allsky, w4=w4
+                              allsky=allsky, w4=w4, band=band
 
   common wise_index_meta_cache, indexfile_cache, ind_sav
-  par = psf_par_struc(w4=w4, allsky=allsky)
+  par = psf_par_struc(w4=w4, allsky=allsky, band=band)
   indexfile = par.indexfile
 
 ; -------- read index file  
@@ -45,10 +48,9 @@ function wise_index_metadata, lb, nimage=nimage, NOSORT=NOSORT, angle=angle, $
      indexfile_cache = indexfile
 
      euler, meta.ra, meta.dec, lambda, beta, 3
-     msknumsat = keyword_set(w4) ? meta.w4msknumsat : meta.w3msknumsat
 ; -------- make some cuts, pretend these don't exist
      wgood = where((meta.moon_sep GT 12) AND (meta.saa_sep GT -5) $ 
-       AND (msknumsat LT par.nsatmax) AND ~((beta LT -76) AND $ 
+       AND (meta.msknumsat LT par.nsatmax) AND ~((beta LT -76) AND $ 
        (lambda GT 180) AND (meta.dtanneal LT 1000)) $ 
        AND ~((beta GT 76) AND (lambda LT 180) AND (meta.dtanneal LT 1000)), nw)
 

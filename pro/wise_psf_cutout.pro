@@ -19,6 +19,8 @@
 ;  psf_coeff - pass in pre-read PSF image, rather than re-reading the
 ;              file containing the PSF for every PSF generated
 ;  allsky    - set for allsky release (default preliminary release)
+;  band      - WISE W? band, should be integer 1-4 inclusive, takes
+;              precedence over w4 keyword. W2 not yet functional
 ;  w4        - set for W4 (default W3)
 ;  msk       - L1b mask image, don't worry about this keyword as it's rarely
 ;              useful
@@ -51,9 +53,9 @@
 ;   2012-Feb-16 - Written by Aaron Meisner
 ;----------------------------------------------------------------------
 function wise_psf_cutout, x, y, BRIGHT=BRIGHT, allsky=allsky, w4=w4, $ 
-                          psf_coeff=psf_coeff, msk=msk, flux=flux
+                          psf_coeff=psf_coeff, msk=msk, flux=flux, band=band
 
-  par = psf_par_struc(w4=w4, allsky=allsky, /everything)
+  par = psf_par_struc(w4=w4, allsky=allsky, band=band, /everything)
 ; ----- minimum allowed separation b/w PSF star centroid, image edge
   NPAD = -0.5
   coord_min = keyword_set(BRIGHT) ? 0 : (par.psfpix/2-par.pfaint/2)
@@ -61,7 +63,7 @@ function wise_psf_cutout, x, y, BRIGHT=BRIGHT, allsky=allsky, w4=w4, $
                                     (par.psfpix/2+par.pfaint/2)
 
   if ~keyword_set(psf_coeff) then begin 
-    psf_coeff = read_psf_coeff(allsky=allsky, w4=w4)
+    psf_coeff = read_psf_coeff(allsky=allsky, w4=w4, band=band)
   endif
 
 ;----- don't extrapolate PSF beyond region over which it was fit
@@ -82,10 +84,11 @@ function wise_psf_cutout, x, y, BRIGHT=BRIGHT, allsky=allsky, w4=w4, $
            psf_coeff[coord_min:coord_max, coord_min:coord_max, 9]*(dy^3)
 
   if ~keyword_set(BRIGHT) then begin
-    cutout = taper_cutout(cutout, feat='wings', allsky=allsky, w4=w4)
+    cutout = taper_cutout(cutout, feat='wings', allsky=allsky, w4=w4, $ 
+                          band=band)
   endif else begin
 ; ----- substitute in new ghost translation model
-    if ~keyword_set(w4) then begin
+    if (band EQ 3) then begin
       ghost_cutout = wise_translate_ghost(x, y, intshift=ishift, $ 
                                           allsky=allsky, w4=w4)
   cutout[(par.psfpix/2-par.xgpix/2+ishift):(par.psfpix/2+par.xgpix/2+ishift), $
