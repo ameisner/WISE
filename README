@@ -9,8 +9,9 @@ Important Keywords
 ==================
 For historical reasons, all IDL routines apply to the Preliminary Release
 by default. As a result, it is necessary to set the allsky keyword to 1 when
-using these IDL routines. The IDL routines default to W3; set the w4 keyword to
-1 when W4 is desired.
+using these IDL routines. The IDL routines default to W3. The "bands" keyword,
+an integer 1-4, now dictates the band of interest. For backward compatibility,
+the w4 keyword still exists and sets band=4. band=2 is not yet functional.
 
 Notes on Fluxes and Magnitudes
 ==============================
@@ -20,13 +21,13 @@ by:
 flux = 10^((magzp-w?mpro)/2.5)
 
 Where magzp is given by the parameter magzp in psf_par_struc.pro, and flux
-is measured in an aperture of radius 0.46 (0.92) arcmin in W3 (W4)
+is measured in an aperture of radius 0.46 (0.92) arcmin in W3 (W4).
 
 Latent Model Details
 ====================
 The parameter latim (latim2) in psf_par_struc.pro gives the file name 
 containing the first (second) latent model. These models are scaled to 
-w?mpro = 0 for both W3 and W4. The first latent is nonlinear in parent
+w?mpro = 0 for all bands. The first latent is nonlinear in parent
 source flux, with amplitude given by:
 
 amplitude(w?mpro) = corr*amplitude(w?mpro = 0)*10^(-w?mpro/2.5)
@@ -34,3 +35,10 @@ amplitude(w?mpro) = corr*amplitude(w?mpro = 0)*10^(-w?mpro/2.5)
 Where corr is a scalar correction factor that can be retrieved using 
 latent_nonlin_corr.pro. Such a nonlinearity correction coefficient
 was found to be unnecessary for the second latent model in both bands.
+
+The first latent is much less pronounced in W1 than in W3, W4 and
+looks qualitatively different. Nevertheless, I have created a model
+analogous to those in W3, W4 that can be accessed in the same way. The W1 
+second latent has not been modeled since this weak feature is very poorly 
+detected in single exposures, even for the very brightest high-latitude 
+sources.
