@@ -96,7 +96,7 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, $
 
 ; ----- file containing PSF polynomial coefficients
   fpsfs = '$WISE_DATA/' + ['psf_coeff-w1.fits', $ 
-                           '', $ 
+                           'psf_coeff-w2.fits', $ 
      keyword_set(allsky) ? 'psf_coeff-big.fits' : $ 
                            'psf_coeff.fits', $
                            'psf_coeff-taper-w4.fits']
@@ -145,7 +145,7 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, $
 
 ; ----- size of full PSF model including core+wings+ghost, could be calculated
 ;       from szwings, ygpix, ygoffs but this will be convenient
-  psfpixs = [325,-1,499, 285]
+  psfpixs = [325,325,499, 285]
   psfpix = psfpixs[band-1]
 
 ; ----- size of PSF cutout to be subtracted from faint sources
@@ -166,7 +166,7 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, $
 
 ; ----- radius inside of which PSF wings are replaced with values from
 ;       PSF core fit
-  radcores = [6, -1, 13, 6]
+  radcores = [6, 6, 13, 6]
   radcore = radcores[band-1]
 
 ; ----- sky annulus parameters for PSF wings
