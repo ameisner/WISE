@@ -68,8 +68,8 @@ function taper_cutout, cutout, feat=feat, bright=bright, allsky=allsky, $
       'latent'  : begin
 ; ----- eventually absorb these into psf_par_struc.pro and generalize
 ;       to w4
-                      r0s = [50, -1, 162, 95] ; L1b pix
-                      r1s = [40, -1, 147, 85]
+                      r0s = [50, 50, 162, 95] ; L1b pix
+                      r1s = [40, 40, 147, 85]
                       r0 = r0s[band-1]
                       r1 = r1s[band-1]
                       weight = taper_weight(par.szlat, par.szlat, r0, r1)
