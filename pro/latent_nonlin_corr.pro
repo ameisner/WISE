@@ -30,19 +30,20 @@ function latent_nonlin_corr, mag, allsky=allsky, w4=w4, band=band
   par = psf_par_struc(w4=w4, allsky=allsky, /everything, band=band)
 
   case band of
-      1 : nlin_coeff = [6.3236440, -7.9318945, 2.6676002]
+      1 : nlin_coeff = [2.7763787, -2.4806535, 0.81217395]
+      2 : nlin_coeff = [1.2812997, -0.97785225, 1.0474848]
       3 : nlin_coeff = keyword_set(allsky) ? $ 
                        [1., 0.2207946, -0.02749962, -0.01057454] : [1, 0.228]
       4 : nlin_coeff = [1., -0.0118, -0.0267]
   endcase
 
-  mags_u = [3.30, -999., keyword_set(allsky) ? 3.1 : par.latmax, par.latmax]
-  mags_l = [1.95, -999., keyword_set(allsky) ? -3. : par.latmin, par.latmin]
+  mags_u = [3.30, 2.50, keyword_set(allsky) ? 3.1 : par.latmax, par.latmax]
+  mags_l = [1.95, 0.65, keyword_set(allsky) ? -3. : par.latmin, par.latmin]
 
   mag_u = mags_u[band-1]
   mag_l = mags_l[band-1]
 
-  if (band EQ 4) OR (band EQ 1) then begin
+  if (band NE 3) then begin
       nlin_corr = (nlin_coeff[0] + $ 
                   ((mag > mag_l) < mag_u)*nlin_coeff[1] + $ 
                   (((mag > mag_l) < mag_u)^2)*nlin_coeff[2])
