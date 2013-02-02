@@ -85,7 +85,7 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, $
 
 ; ----- file containing latent image
   latims = '$WISE_DATA/' + ['latent-w1.fits', $ 
-                            '', $ 
+                            'latent-w2.fits', $ 
       keyword_set(allsky) ? 'latent-nonlinear-allsky.v1.fits' : $ 
                             'latent-nonlinear.fits', $
                             'latent-taper-w4.fits']
@@ -95,8 +95,8 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, $
   latim2 = w4 ? '$WISE_DATA/latent2-w4.fits' : '$WISE_DATA/latent2-w3.fits'
 
 ; ----- file containing PSF polynomial coefficients
-  fpsfs = '$WISE_DATA/' + ['psf_coeff-w1.fits', $ 
-                           'psf_coeff-w2.fits', $ 
+  fpsfs = '$WISE_DATA/' + ['psf_coeff-w1.v1.fits', $ 
+                           'psf_coeff-w2.v1.fits', $ 
      keyword_set(allsky) ? 'psf_coeff-big.fits' : $ 
                            'psf_coeff.fits', $
                            'psf_coeff-taper-w4.fits']
@@ -113,7 +113,7 @@ function psf_par_struc, w4=w4, feat=feat, everything=everything, $
   szcore = w4 ? 27 : 35 ; W3 value ?
 
 ; ----- latent model sidelength
-  szlats = [101, -1, 325, 191] ; W2 value??
+  szlats = [101, 101, 325, 191] ; W2 value??
   szlat = szlats[band-1]
 
 ; ----- 2nd latent model sidelength
