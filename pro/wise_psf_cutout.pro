@@ -83,6 +83,21 @@ function wise_psf_cutout, x, y, BRIGHT=BRIGHT, allsky=allsky, w4=w4, $
            psf_coeff[coord_min:coord_max, coord_min:coord_max, 8]*(dx^3) + $ 
            psf_coeff[coord_min:coord_max, coord_min:coord_max, 9]*(dy^3)
 
+  if (size(psf_coeff,/DIM))[2] EQ 21 then begin
+      cutout +=  $ 
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 10]*(dx^2)*(dy^2) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 11]*(dx^3)*dy + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 12]*(dy^3)*dx + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 13]*(dx^4) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 14]*(dy^4) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 15]*(dx^2)*(dy^3) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 16]*(dy^2)*(dx^3) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 17]*(dx^4)*(dy) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 18]*(dy^4)*(dx) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 19]*(dx^5) + $
+      psf_coeff[coord_min:coord_max, coord_min:coord_max, 20]*(dy^5)
+  endif
+
   if ~keyword_set(BRIGHT) then begin
     cutout = taper_cutout(cutout, feat='wings', allsky=allsky, w4=w4, $ 
                           band=band)
