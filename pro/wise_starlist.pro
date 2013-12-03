@@ -35,23 +35,6 @@
 ;   2011-Feb-16 - Written by Aaron Meisner
 ;
 ;----------------------------------------------------------------------
-
-function binary_search, list, val
-  
-  n = n_elements(list) 
-  step = n/2
-  
-  ind = n/2
-
-  for bar=1, (alog(n)/alog(2))+1 do begin 
-     step = (step/2) > 1
-     ind += (list[ind] LT val ? step : -step)
-     ind = (ind < (n-1)) > 0
-  endfor
-
-  return, ind
-end
-
 pro wise_starlist, h, xlist, ylist, maglist, allsky=allsky, $ 
                    mjdlim=mjdlim, wm=m, w4=w4
 
