@@ -62,7 +62,7 @@ detected in single exposures, even for the very brightest high-latitude
 sources.
 
 Revised W1, W2 v1 PSFs
-=============
+======================
 Since, in certain regions near the W1/W2 PSF core it became clear that 
 third order polynomials did not adequately capture the PSF variation, I have
 created revised PSFs that incorporate higher order polynomial coefficients (up
@@ -71,3 +71,27 @@ recommend these be used rather than the earlier PSF models. wise_psf_cutout.pro
 now uses the v1 models by default, but is backwards compatible so that 
 reverting the psf_par_struc.pro parameter fpsf to its previous value of 
 psf_coeff-w?.fits makes use of the original third order W1/W2 PSF models.
+
+Attribution
+===========
+If you use these PSFs in your published research, please cite:
+
+Meisner & Finkbeiner, ApJ, 781, 5
+
+@ARTICLE{2014ApJ...781....5M,
+   author = {{Meisner}, A.~M. and {Finkbeiner}, D.~P.},
+    title = "{A Full-sky, High-resolution Atlas of Galactic 12 {$\mu$}m Dust Emission with WISE}",
+  journal = {\apj},
+archivePrefix = "arXiv",
+   eprint = {1312.0947},
+ primaryClass = "astro-ph.IM",
+ keywords = {dust, extinction, infrared: ISM, ISM: structure },
+     year = 2014,
+    month = jan,
+   volume = 781,
+      eid = {5},
+    pages = {5},
+      doi = {10.1088/0004-637X/781/1/5},
+   adsurl = {http://adsabs.harvard.edu/abs/2014ApJ...781....5M},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
