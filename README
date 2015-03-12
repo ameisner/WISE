@@ -11,7 +11,25 @@ For historical reasons, all IDL routines apply to the Preliminary Release
 by default. As a result, it is necessary to set the allsky keyword to 1 when
 using these IDL routines. The IDL routines default to W3. The "bands" keyword,
 an integer 1-4, now dictates the band of interest. For backward compatibility,
-the w4 keyword still exists and sets band=4.
+the w4 keyword still exists and sets band=4. If you're getting started and 
+just want to inspect a fiducial PSF evaluated at the center of an L1b image
+in each band you should do the following:
+
+; ----- W1
+par1 = psf_par_struc(/allsky, band=1)
+psf1 = wise_psf_cutout(par1.crpix, par1.crpix, /BRIGHT, /allsky, band=1)
+
+; ----- W2
+par2 = psf_par_struc(/allsky, band=2)
+psf2 = wise_psf_cutout(par2.crpix, par2.crpix, /BRIGHT, /allsky, band=2)
+
+; ----- W3
+par3 = psf_par_struc(/allsky, band=3)
+psf3 = wise_psf_cutout(par3.crpix, par3.crpix, /BRIGHT, /allsky, band=3)
+
+; ----- W4
+par4 = psf_par_struc(/allsky, band=4)
+psf4 = wise_psf_cutout(par4.crpix, par4.crpix, /BRIGHT, /allsky, band=4)
 
 Notes on Fluxes and Magnitudes
 ==============================
