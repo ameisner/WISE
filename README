@@ -17,19 +17,19 @@ in each band you should do the following:
 
 ; ----- W1
 par1 = psf_par_struc(/allsky, band=1)
-psf1 = wise_psf_cutout(par1.crpix, par1.crpix, /BRIGHT, /allsky, band=1)
+psf1 = wise_psf_cutout(par1.crpix, par1.crpix, /bright, /allsky, band=1)
 
 ; ----- W2
 par2 = psf_par_struc(/allsky, band=2)
-psf2 = wise_psf_cutout(par2.crpix, par2.crpix, /BRIGHT, /allsky, band=2)
+psf2 = wise_psf_cutout(par2.crpix, par2.crpix, /bright, /allsky, band=2)
 
 ; ----- W3
 par3 = psf_par_struc(/allsky, band=3)
-psf3 = wise_psf_cutout(par3.crpix, par3.crpix, /BRIGHT, /allsky, band=3)
+psf3 = wise_psf_cutout(par3.crpix, par3.crpix, /bright, /allsky, band=3)
 
 ; ----- W4
 par4 = psf_par_struc(/allsky, band=4)
-psf4 = wise_psf_cutout(par4.crpix, par4.crpix, /BRIGHT, /allsky, band=4)
+psf4 = wise_psf_cutout(par4.crpix, par4.crpix, /bright, /allsky, band=4)
 
 Notes on Fluxes and Magnitudes
 ==============================
